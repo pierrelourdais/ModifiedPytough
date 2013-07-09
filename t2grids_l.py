@@ -16,8 +16,8 @@ PyTOUGH is distributed in the hope that it will be useful, but WITHOUT ANY WARRA
 
 You should have received a copy of the GNU Lesser General Public License along with PyTOUGH.  If not, see <http://www.gnu.org/licenses/>."""
 
-from mulgrids import *
-from t2incons import *
+from mulgrids_l import *
+from t2incons_l import *
 
 
 class rocktype(object):

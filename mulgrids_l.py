@@ -15,7 +15,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 
 from string import ljust,rjust,lowercase,uppercase
-from geometry import *
+from geometry_l import *
 
 def padstring(string,length=80): return ljust(string,length)
 def IntToLetters(i,st='',casefn=lowercase):
