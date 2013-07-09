@@ -16,7 +16,7 @@ PyTOUGH is distributed in the hope that it will be useful, but WITHOUT ANY WARRA
 
 You should have received a copy of the GNU Lesser General Public License along with PyTOUGH.  If not, see <http://www.gnu.org/licenses/>."""
 
-from mulgrids import *
+from mulgrids_l import *
 
 class t2blockincon(object):
     """Class for a single set of initial conditions at one block."""
