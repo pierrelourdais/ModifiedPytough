@@ -19,6 +19,7 @@ from matplotlib.mlab import griddata
 import matplotlib.pyplot as plt
 #import vtk
 import scipy.interpolate 
+import os
 
 
 #Grid realisation
@@ -54,28 +55,33 @@ bottom_radii_step=int(middle_radii_step/rwall*rcap)
 
 
 number_thermocouples=22
-thermocouples={1:[0*     rsand,0.0,   0*   hsand/5 +hbottom+hbottom3,    0],
-               2:[1./2*  rsand,0.0,   0*   hsand/5 +hbottom+hbottom3,    0],
-               3:[1*     rsand,0.0,   0*   hsand/5 +hbottom+hbottom3,    0],
-               4:[0*     rsand,0.0,   1*   hsand/5 +hbottom+hbottom3,    0],
-               5:[1./3*  rsand,0.0,   1*   hsand/5 +hbottom+hbottom3,    0],
-               6:[2./3*  rsand,0.0,   1*   hsand/5 +hbottom+hbottom3,    0],
-               7:[1*     rsand,0.0,   1*   hsand/5 +hbottom+hbottom3,    0],
-               8:[0*     rsand,0.0,   2*   hsand/5 +hbottom+hbottom3,    0],
-               9:[1./3*  rsand,0.0,   2*   hsand/5 +hbottom+hbottom3,    0],
-               10:[2./3* rsand,0.0,   2*   hsand/5 +hbottom+hbottom3,    0],
-               11:[1*    rsand,0.0,   2*   hsand/5 +hbottom+hbottom3,    0],
-               12:[0*    rsand,0.0,   3*   hsand/5 +hbottom+hbottom3,    0],
-               13:[1./3* rsand,0.0,   3*   hsand/5 +hbottom+hbottom3,    0],
-               14:[2./3* rsand,0.0,   3*   hsand/5 +hbottom+hbottom3,    0],
-               15:[1*    rsand,0.0,   3*   hsand/5 +hbottom+hbottom3,    0],
-               16:[-2./3*rsand,0.0,   3*   hsand/5 +hbottom+hbottom3,    0],
-               17:[0*    rsand,0.0,   4*   hsand/5 +hbottom+hbottom3,    0],
-               18:[1./3* rsand,0.0,   4*   hsand/5 +hbottom+hbottom3,    0],
-               19:[2./3* rsand,0.0,   4*   hsand/5 +hbottom+hbottom3,    0],
-               20:[1*    rsand,0.0,   4*   hsand/5 +hbottom+hbottom3,    0],
-               21:[0*    rsand,0.0,   5*   hsand/5 +hbottom+hbottom3,    0],
-               22:[1./2* rsand,0.0,   5*   hsand/5 +hbottom+hbottom3,    0]
+#thermocouples[i][0]=radial position
+#thermocouples[i][1]=theta position
+#thermocouples[i][2]=vertical position
+#thermocouples[i][3]=temperature
+#thermocouples[i][4]=associated block
+thermocouples={1:[0*     rsand,0.0,   0*   hsand/5 +hbottom+hbottom3,    0, None],
+               2:[1./2*  rsand,0.0,   0*   hsand/5 +hbottom+hbottom3,    0, None],
+               3:[1*     rsand,0.0,   0*   hsand/5 +hbottom+hbottom3,    0, None],
+               4:[0*     rsand,0.0,   1*   hsand/5 +hbottom+hbottom3,    0, None],
+               5:[1./3*  rsand,0.0,   1*   hsand/5 +hbottom+hbottom3,    0, None],
+               6:[2./3*  rsand,0.0,   1*   hsand/5 +hbottom+hbottom3,    0, None],
+               7:[1*     rsand,0.0,   1*   hsand/5 +hbottom+hbottom3,    0, None],
+               8:[0*     rsand,0.0,   2*   hsand/5 +hbottom+hbottom3,    0, None],
+               9:[1./3*  rsand,0.0,   2*   hsand/5 +hbottom+hbottom3,    0, None],
+               10:[2./3* rsand,0.0,   2*   hsand/5 +hbottom+hbottom3,    0, None],
+               11:[1*    rsand,0.0,   2*   hsand/5 +hbottom+hbottom3,    0, None],
+               12:[0*    rsand,0.0,   3*   hsand/5 +hbottom+hbottom3,    0, None],
+               13:[1./3* rsand,0.0,   3*   hsand/5 +hbottom+hbottom3,    0, None],
+               14:[2./3* rsand,0.0,   3*   hsand/5 +hbottom+hbottom3,    0, None],
+               15:[1*    rsand,0.0,   3*   hsand/5 +hbottom+hbottom3,    0, None],
+               16:[-2./3*rsand,0.0,   3*   hsand/5 +hbottom+hbottom3,    0, None],
+               17:[0*    rsand,0.0,   4*   hsand/5 +hbottom+hbottom3,    0, None],
+               18:[1./3* rsand,0.0,   4*   hsand/5 +hbottom+hbottom3,    0, None],
+               19:[2./3* rsand,0.0,   4*   hsand/5 +hbottom+hbottom3,    0, None],
+               20:[1*    rsand,0.0,   4*   hsand/5 +hbottom+hbottom3,    0, None],
+               21:[0*    rsand,0.0,   5*   hsand/5 +hbottom+hbottom3,    0, None],
+               22:[1./2* rsand,0.0,   5*   hsand/5 +hbottom+hbottom3,    0, None]
                }
 
 
@@ -84,15 +90,18 @@ thermocouples={1:[0*     rsand,0.0,   0*   hsand/5 +hbottom+hbottom3,    0],
 
 
 number_thermocouplesw=9;
-thermocouplesw={'a':[hbottom+hbottom3+0          ,0],
-                'b':[hbottom+hbottom3+0.053      ,0],
-                'c':[hbottom+hbottom3+0.097      ,0],
-                'd':[hbottom+hbottom3+0.147      ,0],
-                'e':[hbottom+hbottom3+0.198      ,0],
-                'g':[hbottom+hbottom3+0.296      ,0],
-                'h':[hbottom+hbottom3+0.395      ,0],
-                'i':[hbottom+hbottom3+0.505      ,0],
-                'j':[hbottom+hbottom3+0.508      ,0],
+#thermocouples[i][0]=vertical position
+#thermocouples[i][1]=temperature
+#thermocouples[i][2]=indice block
+thermocouplesw={'a':[hbottom+hbottom3+0          ,0,    None],
+                'b':[hbottom+hbottom3+0.053      ,0,    None],
+                'c':[hbottom+hbottom3+0.097      ,0,    None],
+                'd':[hbottom+hbottom3+0.147      ,0,    None],
+                'e':[hbottom+hbottom3+0.198      ,0,    None],
+                'g':[hbottom+hbottom3+0.296      ,0,    None],
+                'h':[hbottom+hbottom3+0.395      ,0,    None],
+                'i':[hbottom+hbottom3+0.505      ,0,    None],
+                'j':[hbottom+hbottom3+0.508      ,0,    None],
                 }
 
 
@@ -161,6 +170,85 @@ def findindiceblock(position, gridblock):
             distance_min_square=distance_square
     return indice
 #######################################################################################
+import math
+from scipy.interpolate import interp1d
+import scipy.io
+
+
+from scipy.interpolate import interp2d
+
+mat = scipy.io.loadmat('co2data3.mat')
+
+
+list1=[]
+for i in range(600):
+    list1.append(mat['P'][i][0])
+
+list2=mat['T'][0]
+f=interp2d(list2,list1,mat['tc'],)
+
+
+def Xtox(x): return math.pow(10.0,(7.0/(1217.0-64.0)*(float(x)-64.0))-2)
+
+def Ytoy(y): return math.pow(10.0,((3.68/604.0)*(620.0-float(y)))-2.21)
+
+phi1_X=[64,85,103,133,153,176,196,219,242,259,278,296,314,335,368,401,431,468,514,540,596,635,672,706,745,786,835,887,957,1006,1064,1116,1159,1191,1216]
+phi1_Y=[76,100,116,144,165,187,206,224,245,259,274,286,296,308,320,335,345,359,373,381,398,408,415,424,432,440,451,455,467,476,482,487,493,497,499]
+
+phi2_X=[64,82,102,122,141,163,185,213,236,257,281,305,331,352,381,409,438,466,493,520,546,576,602,631,668,697,731,771,812,853,890,937,979,1015,1059,1093,1143,1182,1216]
+phi2_Y=[16,38,56,74,93,113,133,163,186,206,229,252,278,296,322,346,370,391,409,428,443,458,471,483,497,505,514,524,532,542,550,561,567,574,580,582,591,595,597]
+
+phi1_x=[]
+phi1_y=[]
+for compteur in range(len(phi1_X)):
+    phi1_x.append(Xtox(phi1_X[compteur]))
+    phi1_y.append(Ytoy(phi1_Y[compteur]))
+    
+phi1_interpolate=interp1d(phi1_x,phi1_y)
+print phi1_interpolate
+
+phi2_x=[]
+phi2_y=[]
+for compteur in range(len(phi2_X)):
+    phi2_x.append(Xtox(phi2_X[compteur]))
+    phi2_y.append(Ytoy(phi2_Y[compteur]))
+    
+phi2_interpolate=interp1d(phi1_x,phi1_y)
+
+
+epsilon=0.41
+k_solid=1 #W/(m.K)
+Pressure=200
+
+
+
+def thermal_conductivity(Temperature,Pressure):
+    ratio_k=ratio(Temperature,Pressure)
+    phi1=phi1_interpolate(ratio_k)
+     
+    phi2=phi2_interpolate(ratio_k)
+     
+    phi=phi2+(phi1-phi2)*(epsilon-0.260)/0.216
+     
+    return float(phi)
+    
+
+def ratio(Temperature,Pressure):
+    ratio=k_fluid(Temperature,Pressure)/k_solid
+    return ratio
+
+def k_fluid(Temperature,Pressure):
+    k_fluid=f(Temperature,Pressure)
+    return k_fluid
+
+
+
+
+
+
+
+
+#######################################################################################
 
     
     
@@ -182,22 +270,28 @@ class step(object):
         
     
     def setinitialT(self):
-        f=open(self.infileexperiment, 'r')
-        content=f.readlines()
-        data=content[6].split()
-        permutation=[22,0,1,4,2,3]+range(5,22)
-        for i in range(number_thermocouples):
-            self.thermocouples[i+1][3]=float(data[permutation[i]])
+        if self.infileexperiment!=None:
+            document=str(self.infileexperiment)
+            os.chdir(r'/Users/Pierre/Desktop/serveur/Serveur')
+            f=open(document, 'r')
+            content=f.readlines()
+            data=content[6].split()
+            permutation=[22,0,1,4,2,3]+range(5,22)
+            for i in range(number_thermocouples):
+                self.thermocouples[i+1][3]=float(data[permutation[i]])
         
     
     def setinitialTw(self):
-        f=open(self.infileexperiment, 'r')
-        content=f.readlines()
-        data=content[6].split()
-        permutation=[25,27,28,29,30,31,32,33,26]
-        name=map(chr, range(97, 102))+map(chr,range(103,107))
-        for i in range(number_thermocouplesw):
-            self.thermocouplesw[name[i]][1]=float(data[permutation[i]])
+        if self.infileexperiment!=None:
+            document=str(self.infileexperiment)
+            #os.chdir(r'/Users/Pierre/Desktop/serveur/Serveur')
+            f=open(self.infileexperiment, 'r')
+            content=f.readlines()
+            data=content[6].split()
+            permutation=[25,27,28,29,30,31,32,33,26]
+            name=map(chr, range(97, 102))+map(chr,range(103,107))
+            for i in range(number_thermocouplesw):
+                self.thermocouplesw[name[i]][1]=float(data[permutation[i]])
     
     def importpreviousnumericaldatas(self):
         infile=self.previousstepcsv
@@ -227,11 +321,13 @@ class step(object):
         for i in range(number_thermocouples):
             indice_thermocouple=findindiceblock([self.thermocouples[i+1][0],self.thermocouples[i+1][1],self.thermocouples[i+1][2]],self.vessel.grid)
             self.thermocouples[i+1][3]=dic[len(dicti)-3][indice_thermocouple]['T']
+            self.thermocouples[i+1][4]=indice_thermocouple
         
         name=map(chr, range(97, 102))+map(chr,range(103,107))
         for i in range(number_thermocouplesw):
             indice_thermocouplew=findindiceblock([rwall,0,self.thermocouplesw[name[i]][0]],self.vessel.grid)
             self.thermocouplesw[name[i]][1]=dic[len(dicti)-3][indice_thermocouplew]['T']
+            self.thermocouplesw[name[i]][2]=indice_thermocouplew
             
     
 
@@ -291,7 +387,8 @@ class step(object):
                 #importer la temperature
             name_sand='SAND'+str(name_list[i])
             specific_heat=0
-            conductivity=0
+            
+            conductivity=thermal_conductivity(thermocouples[i+1][3],Pressure)
             self.vessel.grid.add_rocktype(rocktype(name=name_sand,nad=2,permeability=[9.3e-12]*3,density=2600.0,porosity=0.3942,conductivity=conductivity,specific_heat=specific_heat,compressibility=4.5e-10))
             self.vessel.grid.rocktype[name_sand].relative_permeability={'type':7, 'parameters':[.457,.3,1,.05]}
             self.vessel.grid.rocktype[name_sand].capillarity={'type':8, 'parameters':[.457,0,5.1e-5,1e7,.999]}
@@ -433,7 +530,7 @@ class step(object):
         
             
     def run(self):
-        self.vessel.run(incon_filename=self.nameinfilecore,simulator='zco2n',silent=False,save_filename=self.nameoutfilelisting)
+        self.vessel.run(incon_filename=self.nameinfilecore,simulator='zco2h',silent=False,save_filename=self.nameoutfilelisting)
 
         
     def exportnumericaldatas(self):
@@ -468,7 +565,7 @@ class step(object):
             for j in range(separateur[i],separateur[i+1]):
                 line=content[j]
                 #matchObj=re.search(r' (\S)(\S)(\S) (\S) ..(\S)  (\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)  .(\S)(\S)(\S)(\S)  (\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)  (\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)  (\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)  (\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)  (\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)  (\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)  (\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)(\S)  (\S)(\S)(\S)(\S)(\S)(\S)',line)
-                matchObj=re.search(r'(\s)[a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9](\s)[a-zA-Z0-9]....(\s)(\s).[0-9][0-9][0-9][0-9][0-9][E]',line)
+                matchObj=re.search(r'(\s)[a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9](\s)[a-zA-Z0-9]....(\s)[0-9].[0-9][0-9][0-9][0-9][0-9][E]',line)
                 
                 if matchObj!=None and line[1]!='.':
                     element+=1
@@ -499,16 +596,63 @@ class step(object):
         self.resultat=resultat
         
 class experiment(object):
-    def __init__(self,name,experimentfile,numericalfilecsv):
+    def __init__(self,name,experimentfile,namedir):
         self.name=name
         self.Texperiment={}
         self.experimentfile=experimentfile
-        self.numericalfile=numericalfilecsv
+        self.numericalfile=None
         self.dic={}
+        self.namedir=namedir
+        
+
             
             
+    def gatherdatas(self, filename, steps):
+        fout=open("out.csv","w")
+        # first file:
+        input1=filename+'0.csv'
+        for line in open(input1):
+            if line[0]=='e':
+                elements=int(line[9:])
+            elif line[0]=='t':
+                time=int(line[5:])
+            else:
+                fout.write(line)
+        # now the rest:
+        digit=len(str(time))
+        import csv
+        
+         
+        for num in range(2,steps):
+            f = open(filename+str(num)+".csv")
             
             
+            for line in f:
+                number=time*(num-1)
+                if line[0]!='e' and line[0]!='t':
+                    number_line=number+int(line[0:digit-1])
+                    line=line[digit:]
+                    
+                    line=str(number_line)+','+line
+                    fout.write(line)
+                    
+            f.close() # not really needed
+        time_str='time'+','+str(time)
+        elements_str='elements'+','+str(elements)
+        fout.write(time_str)
+        fout.write('\n')
+        fout.write(elements_str)
+        fout.close()
+        
+        fout=open("out.csv","r")
+        
+        self.numericalfile="out.csv"
+        
+        
+        
+        
+        
+                
     def setexperimentmesure(self):
         #Temperature
         #create a dictiionnary in TC order
@@ -531,7 +675,7 @@ class experiment(object):
             
         
     def importnumericaldatas(self):
-        infile=self.numericalfilecsv
+        infile=self.numericalfile
         import csv
         dicti = {}
         for key, val in csv.reader(open(infile)):
@@ -558,6 +702,18 @@ class experiment(object):
         self.dic=dic
         
     def plot(self):
+        import os
+        
+        if os.path.isdir(self.namedir):
+            i=1
+            while os.path.isdir(self.namedir+str(i)):
+                i=i+1
+            self.namedir=self.namedir+str(i)
+        os.mkdir(self.namedir)
+        import shutil
+        shutil.copyfile(self.experimentfile, self.namedir+'/'+self.experimentfile)
+        shutil.copyfile('out.csv', self.namedir+'/out.csv')
+        os.chdir(self.namedir)
         self.setexperimentmesure()
         self.importnumericaldatas()
         color_level=['g','r','c','b','y','m']
@@ -567,13 +723,13 @@ class experiment(object):
             xnumerical=[]
             yexperiment=[]
             ynumerical=[]
-            positionthermocouples=[]
-            for k in range(3):
-                positionthermocouples.append(thermocouples[i][k])
-            indice=findindiceblock(position=positionthermocouples,gridblock=self.vessel.grid)    
+#             positionthermocouples=[]
+#             for k in range(3):
+#                 positionthermocouples.append(thermocouples[i][k])
+#             indice=findindiceblock(position=positionthermocouples,gridblock=self.vessel.grid)    
             
             for j in range(self.dic['time']):
-                ynumerical.append(self.dic[j][indice]['T'])
+                ynumerical.append(self.dic[j][thermocouples[i][4]]['T'])
                 xnumerical.append(self.dic[j]['time'])
             plt.plot(xnumerical,ynumerical,'ro',color=color_level[stage[i]],linestyle="dashed", marker="o",)
             
@@ -589,15 +745,19 @@ class experiment(object):
             plt.title(title)
             plt.xlabel(xlabel)
             plt.ylabel=(ylabel)
+            import os
+            
             plt.savefig(name,facecolor='w', edgecolor='w')
             plt.close()
             
             
-Tinjection=20
+Tinjection=40
+Pressure=200
 nombre_step=2
-timetotal=2000
+timetotal=200
 timestep=float(timetotal)/nombre_step
-
+experimentfile='6.18.2013_11.07 AM.txt'
+namedir='test1'
 for compteur in range(nombre_step):
     name='step_'+str(compteur)
     outfile='step_'+str(compteur)+'.listing'
@@ -611,7 +771,7 @@ for compteur in range(nombre_step):
             rate=1.6e-3*float(i)/10
             time_inj.append(float(timestep)/10)
             rate_inj.append(rate)
-        infileexperiment='6.18.2013_11.07 AM.txt'
+        infileexperiment=experimentfile
         
     else: 
         previousstepcsv='step_'+str(compteur-1)+'.csv'
@@ -622,12 +782,18 @@ for compteur in range(nombre_step):
             time_inj.append(float(timestep)/10)
             rate_inj.append(1.6e-3)
     a=step(name,previousstepcsv,infileexperiment,timestep,outfile,outfilecsv)
+    print 'compteur'+str(compteur)
+    print a.infileexperiment
+    
+    a.setinitialT()
+    a.setinitialTw()
     a.vessel_definition()
     a.mesh_definition()
     if compteur==0:
         a.setinitialT()
         a.setinitialTw()
     else: a.importpreviousnumericaldatas()
+    
     a.rocktype_definition()
     a.parameters_definition()
     a.generation_definition(rate_inj,time_inj)
@@ -636,6 +802,10 @@ for compteur in range(nombre_step):
     a.write()
     a.run()
     a.exportnumericaldatas()
+    
+b=experiment(name=name,experimentfile=experimentfile,namedir=namedir)
+b.gatherdatas(filename='step_',steps=nombre_step)
+b.plot()
     
         
         

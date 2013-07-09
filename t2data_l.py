@@ -3,8 +3,6 @@
 """
 Modification:
 Pierre Lourdais
-l 917/918: 17/05/2013
-
 """
 
 """

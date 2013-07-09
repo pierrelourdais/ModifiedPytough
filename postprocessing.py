@@ -2,6 +2,7 @@
 Created on 24 mai 2013
 
 @author: Pierre
+Tu use with Pytough
 '''
 
 

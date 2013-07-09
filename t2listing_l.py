@@ -1,6 +1,11 @@
 """For reading TOUGH2 listing files."""
 
 """
+Modification:
+Pierre Lourdais
+"""
+
+"""
 Copyright 2012 University of Auckland.
 
 This file is part of PyTOUGH.

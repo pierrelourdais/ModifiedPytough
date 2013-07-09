@@ -1,6 +1,11 @@
 """For reading and writing TOUGH2 initial conditions files."""
 
 """
+Modification:
+Pierre Lourdais
+"""
+
+"""
 Copyright 2012 University of Auckland.
 
 This file is part of PyTOUGH.

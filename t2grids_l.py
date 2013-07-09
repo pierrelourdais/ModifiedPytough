@@ -1,6 +1,11 @@
 """For manipulating TOUGH2 grids."""
 
 """
+Modification:
+Pierre Lourdais
+"""
+
+"""
 Copyright 2011 University of Auckland.
 
 This file is part of PyTOUGH.

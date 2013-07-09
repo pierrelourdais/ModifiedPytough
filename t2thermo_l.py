@@ -2,6 +2,11 @@
 originally developed by Mike O'Sullivan."""
 
 """
+Modification:
+Pierre Lourdais
+"""
+
+"""
 Copyright 2011 University of Auckland.
 
 This file is part of PyTOUGH.
