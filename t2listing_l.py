@@ -23,7 +23,7 @@ try:
 except ImportError: # try importing Numeric on old installs
     import Numeric as np
     from Numeric import Float64 as float64
-from mulgrids import fix_blockname, valid_blockname, fortran_float
+from mulgrids_l import fix_blockname, valid_blockname, fortran_float
 
 class listingtable(object):
     """Class for table in listing file, with values addressable by index (0-based) or row name, and column name:
