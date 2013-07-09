@@ -16,8 +16,8 @@ PyTOUGH is distributed in the hope that it will be useful, but WITHOUT ANY WARRA
 
 You should have received a copy of the GNU Lesser General Public License along with PyTOUGH.  If not, see <http://www.gnu.org/licenses/>."""
 
-from t2grids import *
-from t2incons import *
+from t2grids_l import *
+from t2incons_l import *
 from math import ceil
 
 class t2data_parser(file):
