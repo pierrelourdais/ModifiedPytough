@@ -5,7 +5,15 @@ Created on 18 juin 2013
 
 @author: Pierre
 '''
-
+###################################
+#MODULE
+#Math: sin,cos,sqrt..
+#Numpy: interp1D
+#Mulgrids,t2data,t2grids,t2incons,t2listing,t2thermo: PyTOUGH (Modified)
+#Copy: copy csv file
+#Matplotlib: draw figures
+#Scipy.interpolate: 2D interpolation
+#os: crate directory, run tough2...
 import math
 import numpy
 from mulgrids_l import *
@@ -25,7 +33,8 @@ import os
 #Grid realisation
 #######################################################################################
 #Geometry
-hpipei=0.01
+#You can see geometry: vessel.jpg
+hpipei=0.05
 hpipe_=0.1
 hsand=0.507
 hpipeo=hpipei
@@ -41,22 +50,24 @@ rcap=0.07
 
 #######################################################################################
 #Mesh
-theta_step=4
-layer_step_middle=5
-layer_step_top=3
-layer_step_bottom=3
-middle_radii_step=5
+theta_step=6
+layer_step_middle=10
+layer_step_top=6
+layer_step_bottom=6
+middle_radii_step=10
 top_radii_step=int(middle_radii_step/rwall*rcap)
 bottom_radii_step=int(middle_radii_step/rwall*rcap)
 
 
 #######################################################################################
 #Initialisation Thermocouples
+#It is possible to add other thermocouples.
 
-
+#VOLUME ONES
 number_thermocouples=22
+#i=1...number_thermocouples: name of the thermocouple. It is an integer (not a string).
 #thermocouples[i][0]=radial position
-#thermocouples[i][1]=theta position
+#thermocouples[i][1]=theta position     Useless because everything is in a plane, but I needed it because of the 3D Mesh
 #thermocouples[i][2]=vertical position
 #thermocouples[i][3]=temperature
 #thermocouples[i][4]=associated block
@@ -86,13 +97,13 @@ thermocouples={1:[0*     rsand,0.0,   0*   hsand/5 +hbottom+hbottom3,    0, None
 
 
 
-
-
-
+#SURFACE ONES
 number_thermocouplesw=9;
-#thermocouples[i][0]=vertical position
-#thermocouples[i][1]=temperature
-#thermocouples[i][2]=indice block
+#i= a,b, ... j: name of the thermocouples. They are strings
+#BUT: f is not here, as it is not connected.
+#thermocouplesw[i][0]=vertical position
+#thermocouplesw[i][1]=temperature
+#thermocouplesw[i][2]=indice block
 thermocouplesw={'a':[hbottom+hbottom3+0          ,0,    None],
                 'b':[hbottom+hbottom3+0.053      ,0,    None],
                 'c':[hbottom+hbottom3+0.097      ,0,    None],
@@ -110,10 +121,11 @@ thermocouplesw={'a':[hbottom+hbottom3+0          ,0,    None],
 
 
 def initial_interp(position,thermocouples):
-#    Ecrire une fonction qui prend en argument thermocouples[i][2]
-#    Qui effectue une interpolation logarithmique radiale
-#    Qui effectue une interpolation verticale lineaire
-#    Qui retourne la temperarure interpolee
+#Initial temperatures inside the vessel are stored in thermocouples[i][3].
+#This function executes interpolation to give initial temperature for each block of the mesh.
+#position: the place you want to get temperature
+#thermocouples: dictionnary of volume thermocouples
+#return a float: temperature(position)
     positionradii=math.sqrt(position[0]**2+position[1]**2)
     ri=(rsand*0,rsand*1./3,rsand*1./2,rsand*2./3,rsand*1)
     zi=(hbottom3+hbottom+hsand*(0/5),hbottom3+hbottom+hsand*(1./5),hbottom3+hbottom+hsand*(2./5),hbottom3+hbottom+hsand*(3./5),hbottom3+hbottom+hsand*(4./5),hbottom3+hbottom+hsand*(5./5))    
@@ -144,6 +156,11 @@ def initial_interp(position,thermocouples):
 
 
 def initial_interpw(position,thermocouplesw):
+#Initial temperatures around the vessel are stored in thermocouplesw[i][1].
+#This function executes interpolation to give initial temperature for each block of the mesh.
+#position: the place you want to get temperature
+#thermocouplesw: dictionnary of surface thermocouples
+#return a float: temperature(position)
     name=map(chr, range(97, 102))+map(chr,range(103,107))
     z=position[2]
     if z>hbottom3+hbottom+hsand:return thermocouplesw[name[number_thermocouples-1]][1]
@@ -159,8 +176,11 @@ def initial_interpw(position,thermocouplesw):
         return interpolation
     
 def findindiceblock(position, gridblock):
-    #find the nearest block
-    #return indice in blocklist
+#find the nearest block of position place in gridblock mesh
+# position: 3 elements list
+#gridblock:t2block
+#return indice in blocklist
+#name of this block: gridblock.blocklist[indice].name
     distance_min_square=hsand**2
     indice=None
     for i in range(len(gridblock.blocklist)):
@@ -170,24 +190,31 @@ def findindiceblock(position, gridblock):
             distance_min_square=distance_square
     return indice
 #######################################################################################
+#THERMAL CONDUCTIVITY
+#To understand how it works: presentation.pdf, slide 19.
 import math
 from scipy.interpolate import interp1d
 import scipy.io
-
-
 from scipy.interpolate import interp2d
 
+#We want to get k_fluid(T,P)
+#Thanks to matlab structure: 'co2data3.mat'
+# It return f(T,P)=k_fluid(T,P) 
 mat = scipy.io.loadmat('co2data3.mat')
-
-
 list1=[]
 for i in range(600):
     list1.append(mat['P'][i][0])
-
+    
 list2=mat['T'][0]
 f=interp2d(list2,list1,mat['tc'],)
 
+#Density(T,P):
+density=interp2d(list2,list1,mat['D'])
 
+
+
+#X to x : image processing from pixel position(X) to real value (x)
+#Y to y : image processing from pixel position(Y) to real value (y)
 def Xtox(x): return math.pow(10.0,(7.0/(1217.0-64.0)*(float(x)-64.0))-2)
 
 def Ytoy(y): return math.pow(10.0,((3.68/604.0)*(620.0-float(y)))-2.21)
@@ -203,26 +230,67 @@ phi1_y=[]
 for compteur in range(len(phi1_X)):
     phi1_x.append(Xtox(phi1_X[compteur]))
     phi1_y.append(Ytoy(phi1_Y[compteur]))
-    
+
+#phi1_interpolate(x) is phi1(ratio) function    
 phi1_interpolate=interp1d(phi1_x,phi1_y)
-print phi1_interpolate
+
 
 phi2_x=[]
 phi2_y=[]
 for compteur in range(len(phi2_X)):
     phi2_x.append(Xtox(phi2_X[compteur]))
     phi2_y.append(Ytoy(phi2_Y[compteur]))
-    
+
+#phi2_interpolate(x) is phi2(ratio) function    
 phi2_interpolate=interp1d(phi1_x,phi1_y)
 
 
-epsilon=0.41
+epsilon=0.41 #Sand porosity (in the vessel)
 k_solid=1 #W/(m.K)
-Pressure=200
+#Pressure_=200 #Pressure you want to study.
+Pressure_top=200 #Pressure at the top of the vessel
 
+#I  assume pressure is nearly constant.
+#It is possible to get a more realistic pressure (hydrostatic) using the following function:
+#def Pressure(vertical_position,Pressure_top,temperature)
+#It imports co2data3.mat (few lines before) in order to use a function:
+#density=interp2(list2,list1,mat['D'])
+#It uses a vertical discretisation: P(x-delta)=P(x)+density(temperature(x-delta),P(x))*g*delta
+#It returns a more accurate pressure 
 
+#Done:
+def pressure(vertical_position,pressure_top):
+    #need that thermocouple[i][2] is already full.
+    delta=0.01
+    step=int((hbottom+hbottom3+hsand-vertical_position)/delta)
+    if vertical_position>hbottom+hbottom3+hsand:
+        print 'error: not in the sand'
+        return pressure_top
+    elif vertical_position<hbottom+hbottom3:
+        print 'error: not in the sand'
+        return pressure_top
+    else:
+        pressure=pressure_top
+        for i in range(step):
+            temperature=initial_interp([0,0,vertical_position-i*step],thermocouples)
+            pressure=pressure+density(temperature,pressure)*delta*9.81
+    return pressure
+        
+            
+    
 
-def thermal_conductivity(Temperature,Pressure):
+def k_fluid(Temperature,Pressure):
+    #Get k_fluid in operating conditions
+    k_fluid=f(Temperature,Pressure)
+    return k_fluid
+
+def ratio(Temperature,Pressure):
+    #Get ratio thanks to k_fluid(T,P) and constant k_solid
+    ratio=k_fluid(Temperature,Pressure)/k_solid
+    return ratio
+
+def thermal_conductivity(Temperature,vertical_position,Pressure_top):
+    Pressure=pressure(vertical_position,Pressure_top)
     ratio_k=ratio(Temperature,Pressure)
     phi1=phi1_interpolate(ratio_k)
      
@@ -233,13 +301,8 @@ def thermal_conductivity(Temperature,Pressure):
     return float(phi)
     
 
-def ratio(Temperature,Pressure):
-    ratio=k_fluid(Temperature,Pressure)/k_solid
-    return ratio
 
-def k_fluid(Temperature,Pressure):
-    k_fluid=f(Temperature,Pressure)
-    return k_fluid
+
 
 
 
@@ -249,9 +312,46 @@ def k_fluid(Temperature,Pressure):
 
 
 #######################################################################################
+#TIME DISCRETISAION
+#Define a new class: step
+#Step object own everything to launch a tough2 simulation
+#It generates a .core file
+#It runs the simulation and export a .listing file
+#It exports a .csv file, essential to create a dictionary structure with all the results
 
-    
-    
+#This class own several functions:
+#initialisation:__init__
+#setinitialT
+#setinitialTw
+#importpreviousnumericaldatas: useful if it is not the first step. It imports the previous .csv file and create a dictionary structure.
+#mesh_definition: create MESH for .core file 
+#vessel_definition: define vessel, a t2data() object from PyTOUGH class. This object is written as a .core file
+#rocktype_definition: define all the rock_type. It creates the spatial dicretisation, using previous functions: density, thermal_conductivity
+#create_sink: inactivate the rocktype_sink elements of the mesh
+#parameters_definition: several parameters, used for writing .core file
+#generation_definition: create a generation object, used for writing .core file
+#incon definition:
+#write_vtk: DONT WORK
+#write: write .core file withe vessel, a t2data object (pytough)
+#run: run TOUGH2 with .core file
+#exportnumerical datas: import .listingfile and export a .csv file
+
+#This object owns several variables:
+#name:
+#outfilecsv
+#nameinfilecore
+#nameoutfilelisting
+#time
+#vessel
+#outfile
+#infileexperiment
+#resultat
+#thermocouples
+#thermocouplesw
+#previousstepcsv
+#mulgrid:
+
+
 class step(object):
     def __init__(self,name,previousstepcsv,infileexperiment,time,outfile,outfilecsv):
         self.name=name
@@ -366,6 +466,8 @@ class step(object):
         mesh.delete_block(mesh.blocklist[0].name)
         self.vessel.grid=mesh
         
+        #print len(self.vessel.grid.blocklist)
+        
         
         
     def vessel_definition(self):
@@ -380,15 +482,14 @@ class step(object):
         self.vessel.grid.add_rocktype(rocktype('PIPE_',permeability=[1.0e-9]*3,density=8000.0,porosity=0.99,conductivity=6.689e-02,specific_heat=500))
         self.vessel.grid.add_rocktype(rocktype('PIPEI',permeability=[1.0e-9]*3,density=2600.0e40,porosity=0.11,conductivity=16.3e9,specific_heat=1.0e4))
         self.vessel.grid.add_rocktype(rocktype('PIPEO',permeability=[1.0e-9]*3,density=8000.0,porosity=0.99,conductivity=6.689e-02,specific_heat=500))
-        
-        
+         
         for i in range(len(name_list)):
                 #Definir: qu'est-ce qui change?????
                 #importer la temperature
             name_sand='SAND'+str(name_list[i])
             specific_heat=0
             
-            conductivity=thermal_conductivity(thermocouples[i+1][3],Pressure)
+            conductivity=thermal_conductivity(thermocouples[i+1][3],thermocouples[i+1][2],Pressure_top)
             self.vessel.grid.add_rocktype(rocktype(name=name_sand,nad=2,permeability=[9.3e-12]*3,density=2600.0,porosity=0.3942,conductivity=conductivity,specific_heat=specific_heat,compressibility=4.5e-10))
             self.vessel.grid.rocktype[name_sand].relative_permeability={'type':7, 'parameters':[.457,.3,1,.05]}
             self.vessel.grid.rocktype[name_sand].capillarity={'type':8, 'parameters':[.457,0,5.1e-5,1e7,.999]}
@@ -396,6 +497,12 @@ class step(object):
             
         for blk in self.vessel.grid.blocklist[:]:
             blk_radii=math.sqrt(blk.centre[0]**2+blk.centre[1]**2)
+            #print ' '
+            #print rsand*1./6
+            #print rsand*3./6
+            #print rsand
+            #print blk_radii
+            #if blk_radii<rsand*1./6:print 'True'
             if blk.centre[2]<hpipei:
                 if blk_radii<rpipe:blk.rocktype=self.vessel.grid.rocktype['PIPEI']
                 else: blk.rocktype=self.vessel.grid.rocktype['STEEL']
@@ -420,6 +527,7 @@ class step(object):
                 if blk_radii<rsand : blk.rocktype=self.vessel.grid.rocktype['SANDA']
                 else:blk.rocktype=self.vessel.grid.rocktype['STEEL']
             elif blk.centre[2]<hbottom3+hbottom+hsand/5*(7/2):
+                
                 if blk_radii<rsand*1./6 : blk.rocktype=self.vessel.grid.rocktype['SANDB']
                 if blk_radii<rsand*3./6 : blk.rocktype=self.vessel.grid.rocktype['SANDC']
                 if blk_radii<rsand*5./6 : blk.rocktype=self.vessel.grid.rocktype['SANDD']
@@ -441,7 +549,16 @@ class step(object):
             else:
                 if blk_radii<rpipe:blk.rocktype=self.vessel.grid.rocktype['PIPEO']
                 else: blk.rocktype=self.vessel.grid.rocktype['STEEL']
+            #print blk.rocktype
     
+    def create_sink(self,rocktype_sink):
+        self.vessel.grid.add_block(t2block('0v001',0.0,self.vessel.grid.rocktypelist[0],centre=[0,0,0]))
+        for blk in self.vessel.grid.blocklist[:]:
+            if blk.rocktype.name==rocktype_sink:
+                self.vessel.grid.blocklist.remove(blk)
+                self.vessel.grid.blocklist.append(blk)
+ 
+        
     
     def parameters_definition(self):
         #set MULTI
@@ -466,7 +583,8 @@ class step(object):
         indom={'BSINK':[1.3790e07,0,1,10], 'PIPEI':[1.3790e07,0,1,15]}
         #Set PARAM
         parameters={'max_iterations':None, 'print_level':2, 'max_timesteps':2000, 'max_duration':None, 'print_interval':1, 
-                            '_option_str':'','option':(1,1,0,0,0,0,0,0,0,0,0,2,0,0,0,0,4,0,0,0,0,4,0,0,0), 'diff0':None, 'texp':None, 'tstart':0.0, 'tstop':20000,
+                            '_option_str':'','option':(1,1,0,0,0,0,0,0,0,0,0,2,0,0,0,0,4,0,0,0,0,4,0,0,0), 'diff0':None, 'texp':None, 'tstart':0.0, 'tstop':self.time,
+                            
                             'const_timestep':-1.0,'timestep':[1], 'max_timestep':None, 'print_block':None, 'gravity':9.81,
                             'timestep_reduction':None, 'scale':None, 'relative_error':1.0e-5, 'absolute_error':None, 'pivot':None,
                             'upstream_weight':None, 'newton_weight':None, 'derivative_increment':1e-8, 'default_incons':[1.3790e07,0,1,95]}
@@ -481,7 +599,8 @@ class step(object):
         self.vessel.output_times=times
                         
     def generation_definition(self,rate_inj,time_inj):
-        injection=t2generator(name='inj 1',block='at 0',type='COM3',gx=None,itab='',ltab=4,rate=rate_inj,time=time_inj,ex=None,fg=None,hg=None)
+        #print self.vessel.grid.blocklist[0]
+        injection=t2generator(name='inj 1',block='0b001',type='COM3',gx=None,itab='',ltab=4,rate=rate_inj,time=time_inj,ex=None,fg=None,hg=None)
         self.vessel.generator=injection
         self.vessel.generatorlist=[injection]
     
@@ -489,32 +608,32 @@ class step(object):
     def incon_definition(self):
         incon=t2incon()
         name=map(chr, range(97, 102))+map(chr,range(103,107))
-        print self.thermocouples
+        
         for blk in self.vessel.grid.blocklist[:]:
             blk_radii=math.sqrt(blk.centre[0]**2+blk.centre[1]**2)
             if str(blk.rocktype)[0:4]=='SAND':
                 
                 T=initial_interp(blk.centre,self.thermocouples)
-                print T
-                t=t2blockincon(block=blk.name, porosity=0,variable=[.1379e8,0,1,T])
+                
+                t=t2blockincon(block=blk.name, porosity=0.41,variable=[.1379e8,0,1,T])
                 incon.add_incon(t)
             
             elif blk.centre[2]<hbottom+hbottom3:
                 if blk_radii>rpipe:
                     T=thermocouplesw[name[0]][1]
-                    t=t2blockincon(block=blk.name, porosity=0,variable=[.1379e8,0,1,T])
+                    t=t2blockincon(block=blk.name, porosity=0.41,variable=[.1379e8,0,1,T])
                     incon.add_incon(t)
                 else:
                     T=Tinjection
-                    t=t2blockincon(block=blk.name, porosity=0,variable=[.1379e8,0,1,T])
+                    t=t2blockincon(block=blk.name, porosity=0.41,variable=[.1379e8,0,1,T])
                     incon.add_incon(t)
             elif blk.centre[2]>hbottom+hbottom3 +hsand:  
                 T=thermocouplesw[name[number_thermocouplesw-1]][1]
-                t=t2blockincon(block=blk.name, porosity=0,variable=[.1379e8,0,1,T])
+                t=t2blockincon(block=blk.name, porosity=0.41,variable=[.1379e8,0,1,T])
                 incon.add_incon(t) 
             else:    
                 T=initial_interpw(blk.centre,thermocouplesw)
-                t=t2blockincon(block=blk.name, porosity=0,variable=[.1379e8,0,1,T])
+                t=t2blockincon(block=blk.name, porosity=0.41,variable=[.1379e8,0,1,T])
                 incon.add_incon(t)
         self.vessel.incon=incon
    
@@ -523,8 +642,8 @@ class step(object):
     
     
     def write(self):
-        print self.vessel.grid.blocklist[0]
-        self.vessel.grid.delete_block('0b001')
+        
+        #self.vessel.grid.delete_block('0b001')
         
         self.vessel.write(filename=self.nameinfilecore)
         
@@ -555,7 +674,7 @@ class step(object):
         resultat={}
         resultat['time']=len(separateur)-1
         resultat['elements']=elements
-        print resultat['time']
+        
          
         import re
         for i in range(len(separateur)-1):
@@ -594,6 +713,35 @@ class step(object):
         for key, val in resultat.items():
             w.writerow([key, val])
         self.resultat=resultat
+#END OF STEP OBJECT     
+################################################################################
+
+
+###############################################################################
+#POSTPROCESSING
+
+#use a new class of object: an EXPERIMENT
+
+#Use several functions:
+#create an object: __init__
+#gatherdatas: gather all the step together, and create a whole .csv file: out.csv
+#setexperimentmesure: import all the data from experiment file for post processing
+#importnumericaldatas: import .csv file as a dictionnary for post-processing
+#plot: an example of post-processing: figure out a comparison between experiment temperature and simulation temperature in each thermocouple place. Create a directory, with figures, out.csv and experimental file
+
+#Use several variables:
+#name: main name of the experiment
+#Texperiment: Texperiment[i][j] get the experimental temperature of j thermocouple at i time
+#experimentfile: the experiment file
+#numericalfile: out.csv if gatherdata is used.
+#dic: a dictionnary with all the simulation results:
+#    examples of dic:
+#        dic['time']: number of simulation time steps
+#        dic['elements']:
+#        dic[i]['time']:
+#        dic[i][j]['T']:
+#        dic[i][j]['xco2aq']:
+#namedir: name of the directory created
         
 class experiment(object):
     def __init__(self,name,experimentfile,namedir):
@@ -611,6 +759,7 @@ class experiment(object):
         fout=open("out.csv","w")
         # first file:
         input1=filename+'0.csv'
+        compteur=0
         for line in open(input1):
             if line[0]=='e':
                 elements=int(line[9:])
@@ -618,11 +767,10 @@ class experiment(object):
                 time=int(line[5:])
             else:
                 fout.write(line)
+                compteur=compteur+1
         # now the rest:
-        digit=len(str(time))
-        import csv
         
-         
+        digit=len(str(time-1))
         for num in range(2,steps):
             f = open(filename+str(num)+".csv")
             
@@ -630,14 +778,22 @@ class experiment(object):
             for line in f:
                 number=time*(num-1)
                 if line[0]!='e' and line[0]!='t':
-                    number_line=number+int(line[0:digit-1])
-                    line=line[digit:]
+                    if digit==1:
+                        number_line=number+int(line[0])
+                    else:
+                        number_line=number+int(line[0:digit-1])
+                    line=line[digit+1:]
                     
                     line=str(number_line)+','+line
                     fout.write(line)
+                    compteur=compteur+1
                     
             f.close() # not really needed
-        time_str='time'+','+str(time)
+        
+        import csv
+        times_total=compteur
+        
+        time_str='time'+','+str(times_total)
         elements_str='elements'+','+str(elements)
         fout.write(time_str)
         fout.write('\n')
@@ -728,9 +884,21 @@ class experiment(object):
 #                 positionthermocouples.append(thermocouples[i][k])
 #             indice=findindiceblock(position=positionthermocouples,gridblock=self.vessel.grid)    
             
+            
             for j in range(self.dic['time']):
+                
                 ynumerical.append(self.dic[j][thermocouples[i][4]]['T'])
-                xnumerical.append(self.dic[j]['time'])
+                if j==0:
+                    xnumerical.append(self.dic[j]['time'])
+                else:
+                    delta_time=self.dic[j]['time']-self.dic[j-1]['time']
+                    if delta_time>0:
+                        xnumerical.append(xnumerical[-1]+delta_time)
+                    else:
+                        xnumerical.append(xnumerical[-1]+self.dic[0]['time'])
+                    
+                #xnumerical.append(self.dic[j]['time'])
+                
             plt.plot(xnumerical,ynumerical,'ro',color=color_level[stage[i]],linestyle="dashed", marker="o",)
             
             for h in range(len(self.Texperiment)-3):
@@ -749,63 +917,74 @@ class experiment(object):
             
             plt.savefig(name,facecolor='w', edgecolor='w')
             plt.close()
-            
-            
-Tinjection=40
-Pressure=200
-nombre_step=2
-timetotal=200
-timestep=float(timetotal)/nombre_step
-experimentfile='6.18.2013_11.07 AM.txt'
-namedir='test1'
-for compteur in range(nombre_step):
-    name='step_'+str(compteur)
-    outfile='step_'+str(compteur)+'.listing'
-    outfilecsv='step_'+str(compteur)+'.csv'
+#END OF EXPERIMENT CLASS
+#############################################################################
+
+
+
+
+#############################################################################
+#MAIN CODE            
+
+#Inputs:
+Tinjection=10                          #Temperature of the CO2 input
+Pressure=200                           #Pressure in the vessel. It is possible to use pressure(vertical_position,pressure_top) if thermocouples[i][2] - temperature of thermocouples - are already set
+nombre_step=10                         #Number of step in time discretization
+timetotal=300                          #Total time of the simulation
+timestep=float(timetotal)/nombre_step  #Time for each simulation step 
+experimentfile='6.18.2013_11.07 AM.txt'#Name for the experiment file
+namedir='test1'                        #Name for the directory created (with figures). If the directory already exists, the name is incremented 
+max_rate=1.6e-3                        #flow rate aimed during the experiment
+
+
+
+for compteur in range(nombre_step):              #Loop: number of steps
+    name='step_'+str(compteur)                   #Main name for the step
+    outfile='step_'+str(compteur)+'.listing'     #Name for the TOUGH2 output file
+    outfilecsv='step_'+str(compteur)+'.csv'      #Name for the .csv file
     
-    if compteur==0:
-        previousstepcsv=None
-        time_inj=[]
-        rate_inj=[]
-        for i in range(10):
-            rate=1.6e-3*float(i)/10
-            time_inj.append(float(timestep)/10)
-            rate_inj.append(rate)
-        infileexperiment=experimentfile
+    if compteur==0:                              #Is it the first step?
+        previousstepcsv=None                     #You do not use a previous step for initial data, but the experiment file
+        time_inj=[]                              #Time dependent injection: linear for the first step from 0 to max rate
+        rate_inj=[]                              #idem
+        for i in range(4):                       #idem
+            rate=max_rate*float(i)/4             #idem
+            time_inj.append(i*float(timestep)/4) #idem
+            rate_inj.append(rate)                #idem
+        infileexperiment=experimentfile          #Define the experimentfile in order to set initial data    
         
-    else: 
-        previousstepcsv='step_'+str(compteur-1)+'.csv'
-        infileexperiment=None
-        time_inj=[]
-        rate_inj=[]
-        for i in range(10):
-            time_inj.append(float(timestep)/10)
-            rate_inj.append(1.6e-3)
-    a=step(name,previousstepcsv,infileexperiment,timestep,outfile,outfilecsv)
-    print 'compteur'+str(compteur)
-    print a.infileexperiment
+    else:                                        #If it is not the first step
+        previousstepcsv='step_'+str(compteur-1)+'.csv' #Define the name of .csv file previous step
+        infileexperiment=None                    #Do not use the experiment file
+        time_inj=[]                              #Time dependent injection: constant rate, equal to max_rate
+        rate_inj=[]                              #idem
+        for i in range(4):                       #idem   
+            time_inj.append(i*float(timestep)/4) #idem
+            rate_inj.append(max_rate)            #idem
+    a=step(name,previousstepcsv,infileexperiment,timestep,outfile,outfilecsv)#Create a step object with all the previous datas
+
+    a.vessel_definition()                       #Define t2data object (pytough)
+    a.mesh_definition()                         #Define the mesh
     
-    a.setinitialT()
-    a.setinitialTw()
-    a.vessel_definition()
-    a.mesh_definition()
-    if compteur==0:
-        a.setinitialT()
-        a.setinitialTw()
-    else: a.importpreviousnumericaldatas()
+    if compteur==0:                             #Is it the first step?
+        a.setinitialT()                         #
+        a.setinitialTw()                        #
+    else: a.importpreviousnumericaldatas()      #
     
-    a.rocktype_definition()
-    a.parameters_definition()
-    a.generation_definition(rate_inj,time_inj)
-    a.incon_definition()
-    #a.write_vtk('vtk')
-    a.write()
-    a.run()
-    a.exportnumericaldatas()
+    a.rocktype_definition()                     #Defines rocktype
+    a.create_sink('PIPEO')                      #Defines a sink
+    a.parameters_definition()                   #Defines parameters
+    a.generation_definition(rate_inj,time_inj)  #Defines a generation object
+    a.incon_definition()                        #Define incon    
+    #a.write_vtk('vtk')                         DO NOT WORK!!!   
+    a.write()                                   #Write .core file
+    a.run()                                     #Run TOUGH2
+    a.exportnumericaldatas()                    #Export all the datas in a .csv file
+    print name+' COMPLETED'
     
-b=experiment(name=name,experimentfile=experimentfile,namedir=namedir)
-b.gatherdatas(filename='step_',steps=nombre_step)
-b.plot()
+b=experiment(name=name,experimentfile=experimentfile,namedir=namedir)#Create ane experiment object
+b.gatherdatas(filename='step_',steps=nombre_step)                    #Gathers all the step in a .csv file: out.csv
+b.plot()                                                             #Figure out figures,experimentfile and out.csv in a new directory   
     
         
         
